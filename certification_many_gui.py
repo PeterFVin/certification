@@ -23,6 +23,8 @@ MONTHS = {
     '12': 'декабрь',
 }
 
+counter1 = 0
+
 theFile = openpyxl.load_workbook('Сертификация много исходник.xlsx')
 
 
@@ -250,43 +252,8 @@ def replace_text_in_paragraph(paragraph, key, value):
 def reference_data_xlsx(input_reference, output_reference, variables):
     theFile = openpyxl.load_workbook(input_reference)
     currentSheet = theFile['На регистрацию сертиф.']
-    currentSheet['D8'].value = f"{variables['{{WORK_NUMBER}}']} от {variables['{{CONTR_DATE}}']}.{variables['{{CONTR_MONTH}}']}.{variables['{{CONTR_YEAR}}']}г."
-    currentSheet['D11'].value = f"{variables['{{EXPERT_LASTNAME}}']} {variables['{{EXPERT_FIRSTNAME_SHORT}}']}{variables['{{EXPERT_SECNAME_SHORT}}']}"
-    currentSheet['D12'].value = f"RU.МСС.Э.{variables['{{EXPERT_REG_NUMBER}}']}"
-    currentSheet['D13'].value = variables['{{IL_NAME}}']
-    currentSheet['D14'].value = f"RU.МСС.Л.{variables['{{IL_REG_NUMBER}}']}"
-    currentSheet['D15'].value = variables['{{BUSINESS_FORM}}']
-    currentSheet['D16'].value = variables['{{COMPANY_NAME}}']
-    currentSheet['D17'].value = variables['{{JUR_ADDRESS}}']
-    currentSheet['D18'].value = variables['{{TEL}}']
-    currentSheet['D19'].value = variables['{{E-MAIL}}']
-    currentSheet['D20'].value = f"{variables['{{DIR_LASTNAME}}']} {variables['{{DIR_FIRSTNAME}}']} {variables['{{DIR_SECNAME}}']}"
-    currentSheet['D21'].value = variables['{{INN}}']
-    currentSheet['D22'].value = variables['{{KPP}}']
-    currentSheet['D27'].value = variables['{{CERT_NAME}}']
-    currentSheet['D28'].value = variables['{{OKPD}}']
-    currentSheet['D31'].value = variables['{{STANDART_SHORT}}']
-    currentSheet['D32'].value = variables['{{STANDART_FULL}}']
-    currentSheet['D33'].value = variables['{{WORK_NUMBER}}']
-    currentSheet['D34'].value = f"{variables['{{ISSUE_DECISION_DATE}}']}.{variables['{{ISSUE_DECISION_MONTH}}']}.{variables['{{ISSUE_DECISION_YEAR}}']}"
-    currentSheet['D35'].value = f"{variables['{{CERTIFICARTE_START_DATE}}']}.{variables['{{CERTIFICARTE_START_MONTH}}']}.{variables['{{CERTIFICARTE_START_YEAR}}']}"
-    currentSheet['D36'].value = f"{variables['{{CERTIFICARTE_DURATION}}']} {'года' if int(variables['{{CERTIFICARTE_DURATION}}']) <= 4 else 'лет'}"
-    currentSheet['D37'].value = f"15.{variables['{{CERTIFICARTE_START_MONTH}}']}.{str(int(variables['{{CERTIFICARTE_START_YEAR}}']) + 1)}"
-    currentSheet['D38'].value = f"15.{variables['{{CERTIFICARTE_START_MONTH}}']}.{str(int(variables['{{CERTIFICARTE_START_YEAR}}']) + 2)}"
-    currentSheet['D39'].value = "" if int(variables['{{CERTIFICARTE_DURATION}}']) <= 3 else f"15.{variables['{{CERTIFICARTE_START_MONTH}}']}.{str(int(variables['{{CERTIFICARTE_START_YEAR}}']) + 3)}"
-    currentSheet['D40'].value = "" if int(variables['{{CERTIFICARTE_DURATION}}']) <= 4 else f"15.{variables['{{CERTIFICARTE_START_MONTH}}']}.{str(int(variables['{{CERTIFICARTE_START_YEAR}}']) + 4)}"
-    currentSheet['D42'].value = f"{variables['{{SAMPLE_ACT_DATE}}']}.{variables['{{SAMPLE_ACT_MONTH}}']}.{variables['{{SAMPLE_ACT_YEAR}}']}"
-    currentSheet['D44'].value = variables['{{PROTOCOL_NUMBER}}']
-    currentSheet['D45'].value = f"{variables['{{PROTOCOL_DATE}}']}.{variables['{{PROTOCOL_MONTH}}']}.{variables['{{PROTOCOL_YEAR}}']}"
-    currentSheet['D46'].value = f"{variables['{{TESTER_NAME}}']}"
-    currentSheet['D47'].value = f"{variables['{{PROD_ANALYSE_DATE}}']}.{variables['{{PROD_ANALYSE_MONTH}}']}.{variables['{{PROD_ANALYSE_YEAR}}']} № {variables['{{WORK_NUMBER}}']}"
     currentSheet['D48'].value = f"{variables['{{CONTRACT_NUMBER}}']}-{variables['{{CONTRACT_YEAR}}']}"
-    currentSheet['D49'].value = f"{variables['{{CONTR_DATE}}']}.{variables['{{CONTR_MONTH}}']}.{variables['{{CONTR_YEAR}}']}г."
-    currentSheet['D50'].value = f"{variables['{{CONTRACT_SUM}}']}"
-    currentSheet['D51'].value = f"{variables['{{CONTRACT_OS_FULL_SUM}}']}"
-    currentSheet['D52'].value = f"{variables['{{CONTRACT_OS_SUM}}']}"
-    currentSheet['D53'].value = f"{variables['{{CONTRACT_IL_FULL_SUM}}']}"
-    currentSheet['D54'].value = f"{variables['{{CONTRACT_IL_SUM}}']}"
+    print('11111111111111', variables['{{CONTRACT_NUMBER}}'], variables['{{CONTRACT_YEAR}}'])
     theFile.save(output_reference)
 
 
@@ -339,11 +306,11 @@ def ik_output(input_reference, excel_file_path, company, variables):
     print('OK!!!!!!!!!!!!!!!!')
 
 
-def main_func(variables):
+def main_func(variables, counter1=counter1):
     excel_file_path = 'Сертификация много исходник.xlsx'
     # currentSheet = theFile.worksheets[0]
     # variables = load_variables_from_sheet(excel_file_path, sheet_number=0)
-    company = variables['{{COMPANY_NAME}}']
+    company = variables[1]['{{COMPANY_NAME}}']
     BASE_DIR = Path(__file__).parent
     main_dir = BASE_DIR / f'{company}'
     main_dir.mkdir(exist_ok=True)
@@ -351,7 +318,7 @@ def main_func(variables):
     main_dir.mkdir(exist_ok=True)
     main_dir = BASE_DIR / f'{company}' / 'Комплект документов'
     main_dir.mkdir(exist_ok=True)
-    works = variables['worksheets_count']
+    works = variables[1]['worksheets_count']
     if works > 1:
         main_dir = BASE_DIR / f'{company}' / 'Комплект документов' / '01 Заявка'
         main_dir.mkdir(exist_ok=True)
@@ -370,17 +337,17 @@ def main_func(variables):
         main_dir = BASE_DIR / f'{company}' / 'Комплект документов' / '08 Справки'
         main_dir.mkdir(exist_ok=True)
     # main('00 Подписанный Дог серт Исходник.docx', f"{company}/Договора/00 Подписанный Дог серт {company}.docx", variables)
-    main('01 Дог серт Исходник.docx', f"{company}/Договора/01 Дог серт {company}.docx", variables)
+    main('01 Дог серт Исходник.docx', f"{company}/Договора/01 Дог серт {company}.docx", variables[1])
     # main('02 Счет Исходник.docx', f"{company}/Договора/02 Счет {company}.docx", variables)
     # main('03 Договор ИК Исходник.docx', f"{company}/Договора/03 Договор ИК {variables['{{CONTRACT_NUMBER}}']}-1-{variables['{{CONTRACT_YEAR}}']} {company}.docx", variables)
     # main('04 АКТ приемки Исходник.docx', f"{company}/Договора/04 АКТ приемки ХХ {company}.docx", variables)
     # main('01 Заявка Исходник.docx', f"{company}/Комплект документов{'/01 Заявка' if works > 1 else ''}/01 Заявка {company}.docx", variables)
     # convert(f"{company}/Договора/00 Подписанный Дог серт {company}.docx")
     # convert(f"{company}/Договора/02 Счет {company}.docx")
-    works = len(theFile.worksheets)
     for work in range(works):
+        counter1 += 1
         sheet_number = work
-        variables = load_variables_from_sheet(excel_file_path, sheet_number)
+        # variables = load_variables_from_sheet(excel_file_path, sheet_number)
         # add - добавка -1, -2 и т.д. к номеру работы, если больше одной работы
         add = ('' if works <= 1 else '-' + str(work + 1))
     #     main('02 Распоряжение Исходник.docx', f"{company}/Комплект документов{'/02 Распоряжения' if works > 1 else ''}/02{add} Распоряжение {company}.docx", variables)
@@ -390,5 +357,5 @@ def main_func(variables):
     #     main('05 Заключение Исходник.docx', f"{company}/Комплект документов{'/05 Заключения' if works > 1 else ''}/05{add} Заключение {company}.docx", variables)
     #     main('06 Решение о выдаче Исходник.docx', f"{company}/Комплект документов{'/06 Решения о выдаче' if works > 1 else ''}/06{add} Решение о выдаче {company}.docx", variables)
     #     main('07 Макет сертификата Исходник.docx', f"{company}/Комплект документов{'/07 Макеты сертификатов' if works > 1 else ''}/07{add} Макет сертификата {company}.docx", variables)
-    #     reference_data_xlsx('08 Справка Исходник.xlsx', f"{company}/Комплект документов{'/08 Справки' if works > 1 else ''}/08{add} Справка {company}.xlsx", variables)
+        reference_data_xlsx('08 Справка Исходник.xlsx', f"{company}/Комплект документов{'/08 Справки' if works > 1 else ''}/08{add} Справка {company}.xlsx", variables[counter1])
     # ik_output('Инспекция Заготовка.xlsx', excel_file_path, company, variables)
