@@ -154,17 +154,24 @@ def main(template_file_path, output_file_path, variables):
     # print(variables)
     print('!!!!!!!!!!!!!!!!!!!!!!!!!!')
     # print(variables.items())
-    for variable_key, variable_value in variables.items():
-        for paragraph in template_document.paragraphs:
-            replace_text_in_paragraph(paragraph, variable_key, variable_value)
+    
+    for paragraph in template_document.paragraphs:
+        if '{{' in paragraph.text:
+            for variable_key, variable_value in variables.items():
+                replace_text_in_paragraph(paragraph, variable_key, variable_value)
 
-        for table in template_document.tables:
-            for row in table.rows:
-                for cell in row.cells:
-                    for paragraph in cell.paragraphs:
-                        replace_text_in_paragraph(paragraph, variable_key, variable_value)
-        
-    if template_file_path == '00 Подписанный Дог серт Исходник.docx' or '01 Дог серт Исходник.docx' or '03 Договор ИК Исходник.docx' or '01 Заявка Исходник.docx':
+    for table in template_document.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    if '{{' in paragraph.text:
+                        for variable_key, variable_value in variables.items():
+                            replace_text_in_paragraph(paragraph, variable_key, variable_value)
+
+    if template_file_path in ['00 Подписанный Дог серт Исходник.docx',
+                              '01 Дог серт Исходник.docx',
+                              '03 Договор ИК Исходник.docx',
+                              '01 Заявка Исходник.docx']:
         if variables['worksheets_count'] > 1:
             for table in template_document.tables:
                 for row in table.rows:
@@ -369,12 +376,12 @@ if __name__ == '__main__':
         main_dir.mkdir(exist_ok=True)
         main_dir = BASE_DIR / f'{company}' / 'Комплект документов' / '08 Справки'
         main_dir.mkdir(exist_ok=True)
-    # main('00 Подписанный Дог серт Исходник.docx', f"{company}/Договора/00 Подписанный Дог серт {company}.docx", variables)
-    # main('01 Дог серт Исходник.docx', f"{company}/Договора/01 Дог серт {company}.docx", variables)
-    # main('02 Счет Исходник.docx', f"{company}/Договора/02 Счет {company}.docx", variables)
-    # main('03 Договор ИК Исходник.docx', f"{company}/Договора/03 Договор ИК {variables['{{CONTRACT_NUMBER}}']}-1-{variables['{{CONTRACT_YEAR}}']} {company}.docx", variables)
-    # main('04 АКТ приемки Исходник.docx', f"{company}/Договора/04 АКТ приемки ХХ {company}.docx", variables)
-    # main('01 Заявка Исходник.docx', f"{company}/Комплект документов{'/01 Заявка' if works > 1 else ''}/01 Заявка {company}.docx", variables)
+    main('00 Подписанный Дог серт Исходник.docx', f"{company}/Договора/00 Подписанный Дог серт {company}.docx", variables)
+    main('01 Дог серт Исходник.docx', f"{company}/Договора/01 Дог серт {company}.docx", variables)
+    main('02 Счет Исходник.docx', f"{company}/Договора/02 Счет {company}.docx", variables)
+    main('03 Договор ИК Исходник.docx', f"{company}/Договора/03 Договор ИК {variables['{{CONTRACT_NUMBER}}']}-1-{variables['{{CONTRACT_YEAR}}']} {company}.docx", variables)
+    main('04 АКТ приемки Исходник.docx', f"{company}/Договора/04 АКТ приемки ХХ {company}.docx", variables)
+    main('01 Заявка Исходник.docx', f"{company}/Комплект документов{'/01 Заявка' if works > 1 else ''}/01 Заявка {company}.docx", variables)
     # convert(f"{company}/Договора/00 Подписанный Дог серт {company}.docx")
     # convert(f"{company}/Договора/02 Счет {company}.docx")
     works = len(theFile.worksheets)
@@ -384,11 +391,12 @@ if __name__ == '__main__':
         # add - добавка -1, -2 и т.д. к номеру работы, если больше одной работы
         add = ('' if works <= 1 else '-' + str(work + 1))
         main('02 Распоряжение Исходник.docx', f"{company}/Комплект документов{'/02 Распоряжения' if works > 1 else ''}/02{add} Распоряжение {company}.docx", variables)
-    #     main('03 Акт отбора Исходник.docx', f"{company}/Комплект документов{'/03 Испытания' if works > 1 else ''}/03{add} Акт отбора {company}.docx", variables)
-    #     main('03 Протокол Исходник.docx', f"{company}/Комплект документов{'/03 Испытания' if works > 1 else ''}/03{add} Протокол {company}.docx", variables)
-    #     main('04 Анализ производства Исходник.docx', f"{company}/Комплект документов{'/04 Акты обследования производства' if works > 1 else ''}/04{add} Анализ производства {company}.docx", variables)
-    #     main('05 Заключение Исходник.docx', f"{company}/Комплект документов{'/05 Заключения' if works > 1 else ''}/05{add} Заключение {company}.docx", variables)
-    #     main('06 Решение о выдаче Исходник.docx', f"{company}/Комплект документов{'/06 Решения о выдаче' if works > 1 else ''}/06{add} Решение о выдаче {company}.docx", variables)
-    #     main('07 Макет сертификата Исходник.docx', f"{company}/Комплект документов{'/07 Макеты сертификатов' if works > 1 else ''}/07{add} Макет сертификата {company}.docx", variables)
-    #     reference_data_xlsx('08 Справка Исходник.xlsx', f"{company}/Комплект документов{'/08 Справки' if works > 1 else ''}/08{add} Справка {company}.xlsx", variables)
-    # ik_output('Инспекция Заготовка.xlsx', excel_file_path, company, variables)
+        main('03 Акт отбора Исходник.docx', f"{company}/Комплект документов{'/03 Испытания' if works > 1 else ''}/03{add} Акт отбора {company}.docx", variables)
+        main('03 Протокол Исходник.docx', f"{company}/Комплект документов{'/03 Испытания' if works > 1 else ''}/03{add} Протокол {company}.docx", variables)
+        main('04 Анализ производства Исходник.docx', f"{company}/Комплект документов{'/04 Акты обследования производства' if works > 1 else ''}/04{add} Анализ производства {company}.docx", variables)
+        main('05 Заключение Исходник.docx', f"{company}/Комплект документов{'/05 Заключения' if works > 1 else ''}/05{add} Заключение {company}.docx", variables)
+        main('06 Решение о выдаче Исходник.docx', f"{company}/Комплект документов{'/06 Решения о выдаче' if works > 1 else ''}/06{add} Решение о выдаче {company}.docx", variables)
+        main('07 Макет сертификата Исходник.docx', f"{company}/Комплект документов{'/07 Макеты сертификатов' if works > 1 else ''}/07{add} Макет сертификата {company}.docx", variables)
+        reference_data_xlsx('08 Справка Исходник.xlsx', f"{company}/Комплект документов{'/08 Справки' if works > 1 else ''}/08{add} Справка {company}.xlsx", variables)
+    ik_output('Инспекция Заготовка.xlsx', excel_file_path, company, variables)
+

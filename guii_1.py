@@ -2,9 +2,24 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from openpyxl import load_workbook
 
+from func_genitive import genitive, genitive_name, number_to_words
 from guii_2 import print_func
 from certification_many_gui import main_func
 
+MONTHS = {
+    '01': 'январь',
+    '02': 'февраль',
+    '03': 'март',
+    '04': 'апрель',
+    '05': 'май',
+    '06': 'июнь',
+    '07': 'июль',
+    '08': 'август',
+    '09': 'сентябрь',
+    '10': 'октябрь',
+    '11': 'ноябрь',
+    '12': 'декабрь',
+}
 
 var_list = (
     ('CONTRACT_NUMBER', 'B2', 'Введите номер договора, например 19'),
@@ -62,16 +77,20 @@ var_list = (
     ('SAMPLE_ACT_YEAR', 'B54', 'Введите год акта отбора образцов - четыре цифры'),
     ('PRODUCTION_CREATED_QUARTER', 'B55', 'Введите квартал изготовления продукции, например IV'),
     ('PRODUCTION_CREATED_YEAR', 'B56', 'Введите год изготовления продукции - четыре цифры'),
-    # ('ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ', 'B57', 'Введите ЫЫЫЫЫЫЫЫЫЫЫЫЫЫ'),
-    # ('ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ', 'B58', 'Введите ЫЫЫЫЫЫЫЫЫЫЫЫЫЫ'),
-    # ('ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ', 'B59', 'Введите ЫЫЫЫЫЫЫЫЫЫЫЫЫЫ'),
-
-
-
-
-
-
-    # ('ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ', 'B5Ы', 'Введите ЫЫЫЫЫЫЫЫЫЫЫЫЫЫ'),
+    ('PRODUCTION_SAMPLES', 'B57', 'Введите описание образцов продукции для испытаний'),
+    ('PROTOCOL_DATE', 'B58', 'Введите дату (день) протокола, например 01'),
+    ('PROTOCOL_MONTH', 'B59', 'Введите месяц протокола - числом, например 01 если январь'),
+    ('PROTOCOL_YEAR', 'B60', 'Введите год протокола - четыре цифры'),
+    ('PROTOCOL_NUMBER', 'B61', 'Введите номер протокола'),
+    ('TEST_GOSTS', 'B62', 'Введите стандарты методики испытаний'),
+    ('TEST_START_DATE', 'B63', 'Введите дату (день) начала сертификационных испытаний, например 01'),
+    ('TEST_START_MONTH', 'B64', 'Введите месяц начала сертификационных испытаний - числом, например 01 если январь'),
+    ('TEST_START_YEAR', 'B65', 'Введите год начала сертификационных испытаний - четыре цифры'),
+    ('SAMPLES_MARK', 'B66', 'Введите маркировку образцов для испытаний'),
+    ('TESTER_NAME', 'B67', 'Введите Фамилию И.О. проводившего испытания'),
+    ('PROD_ANALYSE_DATE', 'B68', 'Введите дату (день) анализа производства, например 01'),
+    ('PROD_ANALYSE_MONTH', 'B69', 'Введите месяц анализа производства - числом, например 01 если январь'),
+    ('PROD_ANALYSE_YEAR', 'B70', 'Введите год анализа производства - четыре цифры'),
 )
 
 # Function to import data from Excel
@@ -137,7 +156,7 @@ def validate_fields(entries):
 
 root = tk.Tk()
 root.title("Document Generator")
-root.geometry("400x400")  # Set a fixed window size
+root.geometry("500x600")  # Set a fixed window size
 
 # Create a container frame for the canvas and scrollbar
 container = tk.Frame(root)
@@ -187,24 +206,90 @@ def on_ok():
         return
 
     variables = {}
+    variables['CERT_NAME'] = []
+    variables['STANDART_FULL'] = []
+    variables['OKPD'] = []
     counter = 0
+    documents_single = {
+        0: flag1_var.get(),
+        1: flag2_var.get(),
+        2: flag3_var.get(),
+        3: flag4_var.get(),
+        4: flag5_var.get(),
+        5: flag6_var.get()
+    }
+    documents_many = {
+        0: flag7_var.get(),
+        1: flag8_var.get(),
+        2: flag9_var.get(),
+        3: flag10_var.get(),
+        4: flag11_var.get(),
+        5: flag12_var.get(),
+        6: flag13_var.get()
+    }
+    spravka = flag14_var.get()
 
     for sheet_name, sheet_frame in sheets.items():
         counter += 1
         variables[counter] = {}
-
         entries = sheet_frame['entries']
         variables[counter]['worksheets_count'] = len(sheets)
+        # Эти три списка в словаре - для добавления нескольких строк продукции в договорах и заявке
+        # Работают в строке - if template_file_path == '00 Подписанный Дог серт Исходник.docx'...
         for i in range(len(var_list)):
             variables[counter]['{{' + var_list[i][0] + '}}'] = entries[var_list[i][0]].get()
-            
-            
+            if var_list[i][0] in ['CERT_NAME', 'OKPD', 'STANDART_FULL']:
+                variables[var_list[i][0]].append(variables[counter]['{{' + var_list[i][0] + '}}'])
+
+        #  Для распоряжения. Ограничение максимального дня - 28, чтобы не получилось 29.02
+        variables[counter]['{{CONTR_DATE<29}}'] = variables[counter]['{{CONTR_DATE}}'] if int(variables[counter]['{{CONTR_DATE}}']) < 29 else '28'
+        #  Если месяц договора декабрь, то месяц окончания работ - январь, чтобы не получилось месяц окончания - 13
+        variables[counter]['{{CONTR_MONTH+1}}'] = '01' if variables[counter]['{{CONTR_MONTH}}'] == '12' else str(int(variables[counter]['{{CONTR_MONTH}}']) + 1)  # Для указания месяца проведения работ.
+        variables[counter]['{{CONTR_MONTH_WORD_GEN}}'] = genitive(MONTHS[variables[counter]['{{CONTR_MONTH}}']])
+        variables[counter]['{{CONTR_YEAR}}'] = '20' + variables[counter]['{{CONTRACT_YEAR}}']
+        #  Равен году договора, а если месяц договора декабрь, то год договора + 1
+        variables[counter]['{{CONTR_YEAR+1}}'] = variables[counter]['{{CONTR_YEAR}}'] if variables[counter]['{{CONTR_MONTH}}'] != '12' else str(int(variables[counter]['{{CONTR_YEAR}}']) + 1)
+        variables[counter]['{{DIR_FIRSTNAME_SHORT}}'] = variables[counter]['{{DIR_FIRSTNAME}}'][:1] + '.'
+        variables[counter]['{{DIR_SECNAME_SHORT}}'] = variables[counter]['{{DIR_SECNAME}}'][:1] + '.'
+        variables[counter]['{{DIR_LASTNAME_GEN}}'] = genitive_name('LASTNAME', variables[counter]['{{GENDER}}'], variables[counter]['{{DIR_LASTNAME}}'])  # Фамилия
+        variables[counter]['{{DIR_FIRSTNAME_GEN}}'] = genitive_name('FIRSTNAME', variables[counter]['{{GENDER}}'], variables[counter]['{{DIR_FIRSTNAME}}'])  # Имя
+        variables[counter]['{{DIR_SECNAME_GEN}}'] = genitive_name('MIDDLENAME', variables[counter]['{{GENDER}}'], variables[counter]['{{DIR_SECNAME}}'])  # Отчество
+        variables[counter]['{{CONTRACT_SUM_WORDS}}'] = number_to_words(variables[counter]['{{CONTRACT_SUM}}'])
+        variables[counter]['{{ISSUE_DECISION_MONTH_GEN}}'] = genitive(MONTHS[variables[counter]['{{ISSUE_DECISION_MONTH}}']])
+        variables[counter]['{{SAMPLE_ACT_MONTH_GEN}}'] = genitive(MONTHS[variables[counter]['{{SAMPLE_ACT_MONTH}}']])
+        variables[counter]['{{PROTOCOL_MONTH_WORD_GEN}}'] = genitive(MONTHS[variables[counter]['{{PROTOCOL_MONTH}}']])
+        variables[counter]['{{CERTIFICARTE_START_MONTH_WORD}}'] = genitive(MONTHS[variables[counter]['{{CERTIFICARTE_START_MONTH}}']])
+        variables[counter]['{{CERTIFICARTE_START_YEAR+1}}'] = str(int(variables[counter]['{{CONTR_YEAR}}']) + 1)
+        variables[counter]['{{CERTIFICARTE_START_YEAR+2}}'] = str(int(variables[counter]['{{CONTR_YEAR}}']) + 2)
+        variables[counter]['{{CERTIFICARTE_START_YEAR+N}}'] = str(int(variables[counter]['{{CONTR_YEAR}}']) + int(variables[counter]['{{CERTIFICARTE_DURATION}}']))
+
+    print(variables[counter]['{{CONTR_YEAR}}'])
+    value = variables[1]['{{CONTRACT_IK_SUM}}']
+
+    # # Для Python 3.11
+    # match int(variables[1]['{{CERTIFICARTE_DURATION}}']):
+    #     case 4:
+    #         variables[1]['{{IK_ADD_SUM}}'] = f"\n\tIII этап\t\t{value} руб. 00 коп."
+    #     case 5:
+    #         variables[1]['{{IK_ADD_SUM}}'] = f"\n\tIII этап\t\t{value} руб. 00 коп.\n\tVI этап\t\t{value} руб. 00 коп."
+    #     case _:
+    #         variables[1]['{{IK_ADD_SUM}}'] = ''
+
+    var1 = int(variables[1]['{{CERTIFICARTE_DURATION}}'])
+    if var1 == 4:
+        variables[1]['{{IK_ADD_SUM}}'] = f"\n\tIII этап\t\t{value} руб. 00 коп."
+    elif var1 == 5:
+            variables[1]['{{IK_ADD_SUM}}'] = f"\n\tIII этап\t\t{value} руб. 00 коп.\n\tVI этап\t\t{value} руб. 00 коп."
+    else:
+        variables[1]['{{IK_ADD_SUM}}'] = ''
+
+
             # variables[counter]['{{CONTRACT_NUMBER}}'] = entries[var_list[0][0]].get()
             # variables[counter]['{{CONTRACT_YEAR}}'] = entries['contract_year'].get()
             # variables[counter]['{{COMPANY_NAME}}'] = entries['company_name'].get()
 
-    print_func(variables)
-    main_func(variables)
+    # print_func(variables, documents)
+    main_func(variables, documents_single, documents_many, spravka)
     messagebox.showinfo('Программа выполнена!', 'Программа отработала успешно, все документы созданы!')
 
 def create_sheet():
@@ -268,6 +353,38 @@ def remove_sheet():
                 del sheets[name]
                 break
 
+def set_all_flags():
+    flag1_var.set(True)
+    flag2_var.set(True)
+    flag3_var.set(True)
+    flag4_var.set(True)
+    flag5_var.set(True)
+    flag6_var.set(True)
+    flag7_var.set(True)
+    flag8_var.set(True)
+    flag9_var.set(True)
+    flag10_var.set(True)
+    flag11_var.set(True)
+    flag12_var.set(True)
+    flag13_var.set(True)
+    flag14_var.set(True)
+
+def unset_all_flags():
+    flag1_var.set(False)
+    flag2_var.set(False)
+    flag3_var.set(False)
+    flag4_var.set(False)
+    flag5_var.set(False)
+    flag6_var.set(False)
+    flag7_var.set(False)
+    flag8_var.set(False)
+    flag9_var.set(False)
+    flag10_var.set(False)
+    flag11_var.set(False)
+    flag12_var.set(False)
+    flag13_var.set(False)
+    flag14_var.set(False)
+
 # Create the Notebook widget inside the frame
 notebook = ttk.Notebook(frame)
 notebook.pack(pady=10, padx=10, fill="both", expand=True)
@@ -279,17 +396,95 @@ create_sheet()
 button_frame = tk.Frame(root)
 button_frame.pack(pady=10)
 
-add_button = tk.Button(button_frame, text="Add Frame", command=create_sheet)
-add_button.pack(side=tk.LEFT, padx=5)
+# Initialize flag variables
+flag1_var = tk.BooleanVar(value=False)  # Default to False
+flag2_var = tk.BooleanVar(value=False)  # Default to False
+flag3_var = tk.BooleanVar(value=False)  # Default to False
+flag4_var = tk.BooleanVar(value=False)  # Default to False
+flag5_var = tk.BooleanVar(value=False)  # Default to False
+flag6_var = tk.BooleanVar(value=False)  # Default to False
+flag7_var = tk.BooleanVar(value=False)  # Default to False
+flag8_var = tk.BooleanVar(value=False)  # Default to False
+flag9_var = tk.BooleanVar(value=False)  # Default to False
+flag10_var = tk.BooleanVar(value=False)  # Default to False
+flag11_var = tk.BooleanVar(value=False)  # Default to False
+flag12_var = tk.BooleanVar(value=False)  # Default to False
+flag13_var = tk.BooleanVar(value=False)  # Default to False
+flag14_var = tk.BooleanVar(value=False)  # Default to False
 
-remove_button = tk.Button(button_frame, text="Remove Frame", command=remove_sheet)
-remove_button.pack(side=tk.LEFT, padx=5)
+# Add a frame for flags and buttons
+control_frame = tk.Frame(root)
+control_frame.pack(pady=10, fill="x")  # Ensure it spans the width of the window
 
-import_button = tk.Button(button_frame, text="Import Data", command=import_data)
-import_button.pack(side=tk.LEFT, padx=5)
+# Add flags in the first row of the control frame
+flag1_checkbox = tk.Checkbutton(control_frame, text="Подписанный договор", variable=flag1_var)
+flag1_checkbox.grid(row=0, column=0, padx=5, pady=5, sticky="w")
 
-ok_button = tk.Button(button_frame, text="OK", command=on_ok)
-ok_button.pack(side=tk.LEFT, padx=5)
+flag2_checkbox = tk.Checkbutton(control_frame, text="Договор сертификация", variable=flag2_var)
+flag2_checkbox.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+
+flag3_checkbox = tk.Checkbutton(control_frame, text="Счет", variable=flag3_var)
+flag3_checkbox.grid(row=0, column=2, padx=5, pady=5, sticky="w")
+
+flag4_checkbox = tk.Checkbutton(control_frame, text="Договор инспекция", variable=flag4_var)
+flag4_checkbox.grid(row=0, column=3, padx=5, pady=5, sticky="w")
+
+flag5_checkbox = tk.Checkbutton(control_frame, text="Акт закрытия", variable=flag5_var)
+flag5_checkbox.grid(row=0, column=4, padx=5, pady=5, sticky="w")
+
+flag6_checkbox = tk.Checkbutton(control_frame, text="Заявка", variable=flag6_var)
+flag6_checkbox.grid(row=0, column=5, padx=5, pady=5, sticky="w")
+
+flag7_checkbox = tk.Checkbutton(control_frame, text="Распоряжение", variable=flag7_var)
+flag7_checkbox.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+
+flag8_checkbox = tk.Checkbutton(control_frame, text="Акт отбора", variable=flag8_var)
+flag8_checkbox.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+
+flag9_checkbox = tk.Checkbutton(control_frame, text="Протокол", variable=flag9_var)
+flag9_checkbox.grid(row=1, column=2, padx=5, pady=5, sticky="w")
+
+flag10_checkbox = tk.Checkbutton(control_frame, text="Анализ производства", variable=flag10_var)
+flag10_checkbox.grid(row=1, column=3, padx=5, pady=5, sticky="w")
+
+flag11_checkbox = tk.Checkbutton(control_frame, text="Заключение", variable=flag11_var)
+flag11_checkbox.grid(row=1, column=4, padx=5, pady=5, sticky="w")
+
+flag12_checkbox = tk.Checkbutton(control_frame, text="Решение о выдаче", variable=flag12_var)
+flag12_checkbox.grid(row=1, column=5, padx=5, pady=5, sticky="w")
+
+flag13_checkbox = tk.Checkbutton(control_frame, text="Макет сертификата", variable=flag13_var)
+flag13_checkbox.grid(row=1, column=6, padx=5, pady=5, sticky="w")
+
+flag14_checkbox = tk.Checkbutton(control_frame, text="Справка", variable=flag14_var)
+flag14_checkbox.grid(row=1, column=7, padx=5, pady=5, sticky="w")
+
+
+# Add buttons in the second row of the control frame
+add_button = tk.Button(control_frame, text="Add Frame", command=create_sheet)
+add_button.grid(row=3, column=0, padx=5, pady=5)
+
+remove_button = tk.Button(control_frame, text="Remove Frame", command=remove_sheet)
+remove_button.grid(row=3, column=1, padx=5, pady=5)
+
+import_button = tk.Button(control_frame, text="Import Data", command=import_data)
+import_button.grid(row=3, column=2, padx=5, pady=5)
+
+ok_button = tk.Button(control_frame, text="OK", command=on_ok)
+ok_button.grid(row=3, column=3, padx=5, pady=5)
+
+# Add Set/Unset buttons in the second row of the control frame
+set_flags_button = tk.Button(control_frame, text="Set All Flags", command=set_all_flags)
+set_flags_button.grid(row=2, column=0, padx=5, pady=5)
+
+unset_flags_button = tk.Button(control_frame, text="Unset All Flags", command=unset_all_flags)
+unset_flags_button.grid(row=2, column=1, padx=5, pady=5)
+
+# # Configure column weights for proper alignment
+# control_frame.columnconfigure(0, weight=1)
+# control_frame.columnconfigure(1, weight=1)
+# control_frame.columnconfigure(2, weight=1)
+# control_frame.columnconfigure(3, weight=1)
 
 # Run the main event loop
 root.mainloop()
