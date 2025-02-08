@@ -417,16 +417,16 @@ def main_func(variables, documents_single, documents_many, spravka, counter1=cou
             6: ('07 Макет сертификата Исходник.docx', f"{direct}/Комплект документов{'/07 Макеты сертификатов' if works > 1 else ''}/07{add} Макет сертификата {company}.docx")
         }
         
-    for key, value in documents_many.items():
-        if value:
-            main(documents_multi[key][0], documents_multi[key][1], variables, counter1)
-        # main('02 Распоряжение Исходник.docx', f"{direct}/Комплект документов{'/02 Распоряжения' if works > 1 else ''}/02{add} Распоряжение {company}.docx", variables, counter1)
-        # main('03 Акт отбора Исходник.docx', f"{direct}/Комплект документов{'/03 Испытания' if works > 1 else ''}/03{add} Акт отбора {company}.docx", variables, counter1)
-        # main('03 Протокол Исходник.docx', f"{direct}/Комплект документов{'/03 Испытания' if works > 1 else ''}/03{add} Протокол {company}.docx", variables, counter1)
-        # main('04 Анализ производства Исходник.docx', f"{direct}/Комплект документов{'/04 Акты обследования производства' if works > 1 else ''}/04{add} Анализ производства {company}.docx", variables, counter1)
-        # main('05 Заключение Исходник.docx', f"{direct}/Комплект документов{'/05 Заключения' if works > 1 else ''}/05{add} Заключение {company}.docx", variables, counter1)
-        # main('06 Решение о выдаче Исходник.docx', f"{direct}/Комплект документов{'/06 Решения о выдаче' if works > 1 else ''}/06{add} Решение о выдаче {company}.docx", variables, counter1)
-        # main('07 Макет сертификата Исходник.docx', f"{direct}/Комплект документов{'/07 Макеты сертификатов' if works > 1 else ''}/07{add} Макет сертификата {company}.docx", variables, counter1)
-        if spravka:
-            reference_data_xlsx('08 Справка Исходник.xlsx', f"{direct}/Комплект документов{'/08 Справки' if works > 1 else ''}/08{add} Справка {company}.xlsx", variables, counter1)
-    # ik_output('Инспекция Заготовка.xlsx', excel_file_path, company, variables)
+        for key, value in documents_many.items():
+            if value:
+                main(documents_multi[key][0], documents_multi[key][1], variables, counter1)
+            # main('02 Распоряжение Исходник.docx', f"{direct}/Комплект документов{'/02 Распоряжения' if works > 1 else ''}/02{add} Распоряжение {company}.docx", variables, counter1)
+            # main('03 Акт отбора Исходник.docx', f"{direct}/Комплект документов{'/03 Испытания' if works > 1 else ''}/03{add} Акт отбора {company}.docx", variables, counter1)
+            # main('03 Протокол Исходник.docx', f"{direct}/Комплект документов{'/03 Испытания' if works > 1 else ''}/03{add} Протокол {company}.docx", variables, counter1)
+            # main('04 Анализ производства Исходник.docx', f"{direct}/Комплект документов{'/04 Акты обследования производства' if works > 1 else ''}/04{add} Анализ производства {company}.docx", variables, counter1)
+            # main('05 Заключение Исходник.docx', f"{direct}/Комплект документов{'/05 Заключения' if works > 1 else ''}/05{add} Заключение {company}.docx", variables, counter1)
+            # main('06 Решение о выдаче Исходник.docx', f"{direct}/Комплект документов{'/06 Решения о выдаче' if works > 1 else ''}/06{add} Решение о выдаче {company}.docx", variables, counter1)
+            # main('07 Макет сертификата Исходник.docx', f"{direct}/Комплект документов{'/07 Макеты сертификатов' if works > 1 else ''}/07{add} Макет сертификата {company}.docx", variables, counter1)
+            if spravka:
+                reference_data_xlsx('08 Справка Исходник.xlsx', f"{direct}/Комплект документов{'/08 Справки' if works > 1 else ''}/08{add} Справка {company}.xlsx", variables, counter1)
+        # ik_output('Инспекция Заготовка.xlsx', excel_file_path, company, variables)

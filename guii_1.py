@@ -27,7 +27,7 @@ var_list = (
     ('WORK_NUMBER', 'B4', 'Введите номер работы - если несколько работ, то например 19-01, 19-02 и т.д.24'),
     ('BILL_NUMBER', 'B5', 'Введите номер счета'),
     ('CONTR_DATE', 'B6', 'Введите дату (день) договора, например 01'),
-    ('CONTR_MONTH', 'B7', 'CONTR_MONTH', 'Введите месяц договора числом, например 01 если январь'),
+    ('CONTR_MONTH', 'B7', 'Введите месяц договора числом, например 01 если январь'),
     ('BUSINESS_FORM_FULL', 'B8', 'Введите организационно-правовую форму полностью, например общество с ограниченной ответственностью'),
     ('COMPANY_NAME_FULL', 'B9', 'Введите наименование организации (полное)'),
     ('BUSINESS_FORM', 'B10', 'Введите организационно-правовую форму кратко, например ООО'),
@@ -55,7 +55,7 @@ var_list = (
     ('BANK_NAME', 'B32', 'Введите имя банка организации'),
     ('KORR_ACCOUNT', 'B33', 'Введите корреспондентский счет организации'),
     ('BIK', 'B34', 'Введите БИК банка организации'),
-    ('OGRN', 'B35', 'Введите ЫЫЫЫЫЫЫЫЫЫЫЫЫЫ организации'),
+    ('OGRN', 'B35', 'Введите ОГРН организации'),
     ('TEL', 'B36', 'Введите телефон организации'),
     ('E-MAIL', 'B37', 'Введите e-mail организации'),
     ('EXPERT_LASTNAME', 'B38', 'Введите фамилию эксперта по сертификации'),
@@ -263,7 +263,7 @@ def on_ok():
         variables[counter]['{{CERTIFICARTE_START_YEAR+2}}'] = str(int(variables[counter]['{{CONTR_YEAR}}']) + 2)
         variables[counter]['{{CERTIFICARTE_START_YEAR+N}}'] = str(int(variables[counter]['{{CONTR_YEAR}}']) + int(variables[counter]['{{CERTIFICARTE_DURATION}}']))
 
-    print(variables[counter]['{{CONTR_YEAR}}'])
+    # print(variables[counter]['{{CONTR_YEAR}}'])
     value = variables[1]['{{CONTRACT_IK_SUM}}']
 
     # # Для Python 3.11
@@ -289,6 +289,8 @@ def on_ok():
             # variables[counter]['{{COMPANY_NAME}}'] = entries['company_name'].get()
 
     # print_func(variables, documents)
+    # print('!!!!!!!!!!!!!!!!09898y86!!!!!!!')
+    # print(variables)
     main_func(variables, documents_single, documents_many, spravka)
     messagebox.showinfo('Программа выполнена!', 'Программа отработала успешно, все документы созданы!')
 
