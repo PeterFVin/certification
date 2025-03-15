@@ -40,6 +40,4 @@ def number_to_words(input_number):
 
 
 if __name__ == "__main__":
-    # print(genitive('апрель'))
     print(genitive_name('LASTNAME', 'М', 'Павлов'))
-    # print(number_to_words('2 000'))
